@@ -5,11 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class item_status extends Model
+class TransactionStatus extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'status_name'
     ];
+
+
+    public function transaction()
+    {
+        return $this->hasOne(Transactions::class, 'status_id');
+    }
 }

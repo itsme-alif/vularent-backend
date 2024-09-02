@@ -44,4 +44,9 @@ class User extends Authenticatable
         'phone_number_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function items()
+    {
+        return $this->hasMany(Items::class, 'owner_id');
+    }
 }

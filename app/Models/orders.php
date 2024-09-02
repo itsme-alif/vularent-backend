@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class orders extends Model
+class Orders extends Model
 {
     use HasFactory;
 
@@ -17,4 +17,22 @@ class orders extends Model
         'total_price',
         'status_id'
     ];
+
+    // Relationship to the User model
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Relationship to the OrderStatus model
+    public function status()
+    {
+        return $this->belongsTo(OrderStatus::class, 'status_id');
+    }
+
+    // Relationship to the Item Model
+    public function item()
+    {
+        return $this->belongsTo(Items::class, 'item_id');
+    }
 }

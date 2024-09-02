@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class categories extends Model
+class Categories extends Model
 {
     use HasFactory;
 
@@ -14,4 +14,10 @@ class categories extends Model
 
         'category_name'
     ];
+
+
+    public function item()
+    {
+        return $this->hasOne(Items::class, 'category_id');
+    }
 }

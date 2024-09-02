@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\items;
+use App\Models\Items;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Ramsey\Uuid\Type\Integer;
 
 class ItemsController extends Controller
 {
@@ -17,97 +14,65 @@ class ItemsController extends Controller
      */
     public function index()
     {
-        $all_item = DB::table('items as i')
-        ->leftJoin('item_statuses as is', 'is.id', '=', 'i.status_id')
-        ->leftJoin('categories as c', 'c.id', '=', 'i.category_id')
-        ->leftJoin('users as u', 'u.id', '=', 'i.owner_id')
-        ->select([
-            'i.*',
-            'is.status_name',
-            'c.category_name',
-            'u.name as owner_name',
-            'u.email  as owner_email',
-            'u.phone_number as owner_phone'
-        ])
-        ->orderBy('i.id')
-        ->get();
+        try {
+            $all_items = Items::all();
 
+            if ($all_items->isEmpty()) {
+                return ApiResponses::send('No data available', 404);
+            }
 
-        if (empty($all_item)) {
-            return ApiResponses::send('No data here', 206);
+            return ApiResponses::send('Successfully retrieved item data', 200, null, $all_items);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return ApiResponses::send('An error occurred while fetching items', 500);
         }
-
-        return ApiResponses::send('Successfully get item data', 200, null, $all_item);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
      * Store a newly created resource in storage.
-    */
+     */
     public function store(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'item_name' => 'required',
-                'item_description' => 'required',
-                'category_id' => 'integer|required',
-                'owner_id' => 'integer|required',
-                'price_per_day' => 'integer|required',
-                'status_id' => 'integer|required'
+                'item_name' => 'required|string|max:255',
+                'item_description' => 'required|string',
+                'category_id' => 'required|integer|exists:categories,id',
+                'owner_id' => 'required|integer|exists:users,id',
+                'price_per_day' => 'required|numeric|min:0',
+                'status_id' => 'required|integer|exists:item_statuses,id'
             ]);
 
             if ($validator->fails()) {
-                return ApiResponses::send('all input is required', 400, $validator->errors());
+                return ApiResponses::send('Validation failed', 400, $validator->errors());
             }
 
-            $item = items::created($request->all());
+            $item = Items::create($request->all());
 
-            if (!$item) {
-                return ApiResponses::send('Failed to create a new item', 400, $item);
-            }
-
-            return ApiResponses::send('Successfully create new item', 200, null, $item);
-
+            return ApiResponses::send('Successfully created new item', 201, null, $item);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
+            return ApiResponses::send('An error occurred while creating the item', 500, $e->getMessage());
         }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(String $category_name)
+    public function show(int $id)
     {
-        $get_item = DB::table('items as i')
-        ->where('c.category_name', '=', $category_name)
-        ->leftJoin('item_statuses as is', 'is.id', '=', 'i.status_id')
-        ->leftJoin('categories as c', 'c.id', '=', 'i.category_id')
-        ->leftJoin('users as u', 'u.id', '=', 'i.owner_id')
-        ->select([
-            'i.*',
-            'is.status_name',
-            'c.category_name',
-            'u.name as owner_name',
-            'u.email  as owner_email',
-            'u.phone_number as owner_phone'
-        ])
-        ->orderBy('i.id')
-        ->get();
-    }
+        try {
+            $item = Items::find($id);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Integer $id)
-    {
-        //
+            if (!$item) {
+                return ApiResponses::send('Item not found', 404);
+            }
+
+            return ApiResponses::send('Successfully retrieved item', 200, null, $item);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return ApiResponses::send('An error occurred while retrieving the item', 500, $e->getMessage());
+        }
     }
 
     /**
@@ -116,28 +81,25 @@ class ItemsController extends Controller
     public function update(Request $request, int $id)
     {
         try {
-            // Validate the request data
             $validator = Validator::make($request->all(), [
                 'item_name' => 'required|string|max:255',
-                'item_description' => 'required|string',
-                'category_id' => 'required|integer|exists:categories,id',
-                'owner_id' => 'required|integer|exists:owners,id',
+                'item_description' => 'string',
+                'category_id' => 'integer|exists:categories,id',
+                'owner_id' => 'integer|exists:owners,id',
                 'price_per_day' => 'required|numeric|min:0',
-                'status_id' => 'required|integer|exists:statuses,id'
+                'status_id' => 'integer|exists:item_statuses,id'
             ]);
 
             if ($validator->fails()) {
                 return ApiResponses::send('Validation failed', 400, $validator->errors());
             }
 
-            // Find the item by ID
-            $item = items::find($id);
+            $item = Items::find($id);
 
             if (!$item) {
                 return ApiResponses::send('Item not found', 404);
             }
 
-            // Update the item with validated data
             $item->update($request->only([
                 'item_name',
                 'item_description',
@@ -147,36 +109,31 @@ class ItemsController extends Controller
                 'status_id'
             ]));
 
-            // Return a successful response
             return ApiResponses::send('Item updated successfully', 200, null, $item);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
+            return ApiResponses::send('An error occurred while updating the item', 500);
         }
     }
-
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(int $id)
     {
-        // Find the item by ID
-        $item = items::find($id);
-
-        // Check if the item exists
-        if (!$item) {
-            return ApiResponses::send('Item not found', 404);
-        }
-
-        // Attempt to delete the item
         try {
+            $item = Items::find($id);
+
+            if ($item->isEmpty()) {
+                return ApiResponses::send('Item not found', 404);
+            }
+
             $item->delete();
+
+            return ApiResponses::send('Item deleted successfully', 200);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
+            return ApiResponses::send('An error occurred while deleting the item', 500);
         }
-
-        return ApiResponses::send('Item deleted successfully', 200);
     }
-
-
 }

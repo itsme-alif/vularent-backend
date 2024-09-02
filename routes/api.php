@@ -21,8 +21,8 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
+Route::apiResource('item', ItemsController::class);
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::apiResource('item', ItemsController::class);
     Route::apiResource('order', OrdersController::class);
     Route::apiResource('transaction', TransactionsController::class);
 });
