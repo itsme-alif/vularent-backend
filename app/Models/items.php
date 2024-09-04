@@ -20,43 +20,75 @@ class Items extends Model
         'status_id'
     ];
 
-    protected $appends = ['owner', 'status_name'];
+    protected $appends = ['owner', 'status_name', 'category_name'];
 
-    // Relationship to the User model
+    /**
+     * Relationship to the User model.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
 
-    // Relationship to the ItemStatus model
+    /**
+     * Relationship to the ItemStatus model.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function status()
     {
         return $this->belongsTo(ItemStatus::class, 'status_id');
     }
 
-    public function getOwnerAttribute()
-    {
-        return $this->owner()->first()->name; // Assuming the 'name' field exists in the User model
-    }
-
-    public function getStatusNameAttribute()
-    {
-        return $this->status()->first()->status_name; // Assuming the 'status_name' field exists in the ItemStatus model
-    }
-
-    public function getCategoryAttribute()
-    {
-        return $this->category()->first()->category_name;
-    }
-
+    /**
+     * Relationship to the Categories model.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function category()
     {
         return $this->belongsTo(Categories::class, 'category_id');
     }
 
+    /**
+     * Get the owner's name.
+     *
+     * @return string
+     */
+    public function getOwnerAttribute()
+    {
+        return $this->owner()->first()->name; // Assuming the 'name' field exists in the User model
+    }
+
+    /**
+     * Get the status name.
+     *
+     * @return string
+     */
+    public function getStatusNameAttribute()
+    {
+        return $this->status()->first()->status_name; // Assuming the 'status_name' field exists in the ItemStatus model
+    }
+
+    /**
+     * Get the category name.
+     *
+     * @return string
+     */
+    public function getCategoryNameAttribute()
+    {
+        return $this->category()->first()->category_name;
+    }
+
+    /**
+     * Relationship to the Orders model.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function orders()
     {
         return $this->hasMany(Orders::class, 'item_id');
     }
-
 }

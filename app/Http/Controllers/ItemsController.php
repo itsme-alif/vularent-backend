@@ -24,7 +24,7 @@ class ItemsController extends Controller
             return ApiResponses::send('Successfully retrieved item data', 200, null, $all_items);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            return ApiResponses::send('An error occurred while fetching items', 500);
+            return ApiResponses::send('An error occurred while fetching items', 500, $e->getMessage());
         }
     }
 
