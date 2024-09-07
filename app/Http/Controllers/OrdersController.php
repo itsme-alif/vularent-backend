@@ -36,26 +36,12 @@ class OrdersController extends Controller
     }
 
     /**
-     * Get the authenticated user ID from cookies.
-     */
-    private function getAuthenticatedUserId()
-    {
-        $userCookie = Cookie::get('__userAuth');
-
-        if (empty($userCookie)) {
-            return null;
-        }
-
-        return $userCookie['user_id'];
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
         try {
-            $user_id = $this->getAuthenticatedUserId();
+            $user_id = Helper::getUserCookie();
 
             if (!$user_id) {
                 return ApiResponses::send('Unauthorized access', 401);
@@ -101,7 +87,7 @@ class OrdersController extends Controller
     public function show(int $id)
     {
         try {
-            $user_id = $this->getAuthenticatedUserId();
+            $user_id = Helper::getUserCookie();
 
             if (!$user_id) {
                 return ApiResponses::send('Unauthorized access', 401);
@@ -127,7 +113,7 @@ class OrdersController extends Controller
     public function update(Request $request, int $id)
     {
         try {
-            $user_id = $this->getAuthenticatedUserId();
+            $user_id = Helper::getUserCookie();
 
             if (!$user_id) {
                 return ApiResponses::send('Unauthorized access', 401);
@@ -165,7 +151,7 @@ class OrdersController extends Controller
     {
         try {
 
-            $user_id = $this->getAuthenticatedUserId();
+            $user_id = Helper::getUserCookie();
 
             if (!$user_id) {
                 return ApiResponses::send('Unauthorized access', 401);
