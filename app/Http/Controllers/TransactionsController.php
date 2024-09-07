@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\transactions;
+use App\Models\Transactions;
 use Illuminate\Http\Request;
 
 class TransactionsController extends Controller
@@ -10,9 +10,21 @@ class TransactionsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(int $user_id)
     {
-        //
+        try {
+
+            $all_transaction = Transactions::find($user_id);
+
+            if (empty($all_transaction)) {
+                return ApiResponses::send('No transactions found for this user', 404);
+            }
+
+            return ApiResponses::send('Transactions for this user', 200, null, $all_transaction);
+
+        } catch (\Exception $e) {
+return ApiResponses::send($e->getMessage(), 500);
+        }
     }
 
     /**

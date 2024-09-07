@@ -164,6 +164,7 @@ class OrdersController extends Controller
     public function destroy(int $id)
     {
         try {
+
             $user_id = $this->getAuthenticatedUserId();
 
             if (!$user_id) {
